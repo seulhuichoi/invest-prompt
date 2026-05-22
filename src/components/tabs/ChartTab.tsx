@@ -19,11 +19,11 @@ export function ChartTab(): React.JSX.Element {
   return (
     <div className="space-y-5">
       <div>
-        <h2 className="text-lg font-bold text-white">📈 기술적 분석</h2>
-        <p className="text-sm text-zinc-400">차트 & 지표 분석</p>
+        <h2 className="text-lg font-bold text-gray-900 dark:text-white">📈 기술적 분석</h2>
+        <p className="text-sm text-gray-500 dark:text-zinc-400">차트 & 지표 분석</p>
       </div>
 
-      <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-4 space-y-5">
+      <div className="bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 rounded-xl p-4 space-y-5">
         <StockPicker value={stock} onChange={setStock} />
 
         <ButtonGroup

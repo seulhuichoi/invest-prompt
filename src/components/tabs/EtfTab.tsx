@@ -34,13 +34,13 @@ export function EtfTab(): React.JSX.Element {
   return (
     <div className="space-y-5">
       <div>
-        <h2 className="text-lg font-bold text-white">🏦 ETF 분석</h2>
-        <p className="text-sm text-zinc-400">ETF 비교 & 포트폴리오</p>
+        <h2 className="text-lg font-bold text-gray-900 dark:text-white">🏦 ETF 분석</h2>
+        <p className="text-sm text-gray-500 dark:text-zinc-400">ETF 비교 & 포트폴리오</p>
       </div>
 
-      <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-4 space-y-5">
+      <div className="bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 rounded-xl p-4 space-y-5">
         <div className="space-y-3">
-          <p className="text-sm font-semibold text-zinc-200">📌 ETF 선택</p>
+          <p className="text-sm font-semibold text-gray-800 dark:text-zinc-200">📌 ETF 선택</p>
           <div className="flex gap-2">
             <input
               type="text"
@@ -48,7 +48,7 @@ export function EtfTab(): React.JSX.Element {
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && handleAdd()}
               placeholder="ETF명 직접 입력"
-              className="flex-1 bg-zinc-800 border border-zinc-600 rounded-lg px-3 py-2 text-sm text-white placeholder-zinc-500 focus:outline-none focus:border-red-500"
+              className="flex-1 bg-gray-50 dark:bg-zinc-800 border border-gray-300 dark:border-zinc-600 rounded-lg px-3 py-2 text-sm text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-zinc-500 focus:outline-none focus:border-red-500"
             />
             <button
               onClick={handleAdd}
@@ -58,7 +58,7 @@ export function EtfTab(): React.JSX.Element {
             </button>
           </div>
 
-          <p className="text-xs text-zinc-500">🇺🇸 미국 ETF</p>
+          <p className="text-xs text-gray-400 dark:text-zinc-500">🇺🇸 미국 ETF</p>
           <div className="flex flex-wrap gap-2">
             {US_ETFS.map((etf) => (
               <button
@@ -67,18 +67,18 @@ export function EtfTab(): React.JSX.Element {
                 className={`flex flex-col items-start px-3 py-2 rounded-xl text-xs border transition-colors ${
                   selected.includes(etf.ticker)
                     ? 'bg-red-500 border-red-500 text-white'
-                    : 'bg-transparent border-zinc-600 text-zinc-300 hover:border-zinc-400 hover:text-white'
+                    : 'bg-transparent border-gray-300 dark:border-zinc-600 text-gray-700 dark:text-zinc-300 hover:border-gray-500 dark:hover:border-zinc-400'
                 }`}
               >
                 <span className="font-bold">{etf.ticker}</span>
-                <span className={`text-[10px] mt-0.5 ${selected.includes(etf.ticker) ? 'text-red-100' : 'text-zinc-500'}`}>
+                <span className={`text-[10px] mt-0.5 ${selected.includes(etf.ticker) ? 'text-red-100' : 'text-gray-500 dark:text-zinc-500'}`}>
                   {etf.desc}
                 </span>
               </button>
             ))}
           </div>
 
-          <p className="text-xs text-zinc-500">🇰🇷 한국 ETF</p>
+          <p className="text-xs text-gray-400 dark:text-zinc-500">🇰🇷 한국 ETF</p>
           <div className="flex flex-wrap gap-2">
             {KR_ETFS.map((etf) => (
               <button
@@ -87,11 +87,11 @@ export function EtfTab(): React.JSX.Element {
                 className={`flex flex-col items-start px-3 py-2 rounded-xl text-xs border transition-colors ${
                   selected.includes(etf.ticker)
                     ? 'bg-red-500 border-red-500 text-white'
-                    : 'bg-transparent border-zinc-600 text-zinc-300 hover:border-zinc-400 hover:text-white'
+                    : 'bg-transparent border-gray-300 dark:border-zinc-600 text-gray-700 dark:text-zinc-300 hover:border-gray-500 dark:hover:border-zinc-400'
                 }`}
               >
                 <span className="font-bold">{etf.ticker}</span>
-                <span className={`text-[10px] mt-0.5 ${selected.includes(etf.ticker) ? 'text-red-100' : 'text-zinc-500'}`}>
+                <span className={`text-[10px] mt-0.5 ${selected.includes(etf.ticker) ? 'text-red-100' : 'text-gray-500 dark:text-zinc-500'}`}>
                   {etf.desc}
                 </span>
               </button>
@@ -103,10 +103,10 @@ export function EtfTab(): React.JSX.Element {
               {selected.map((t) => (
                 <span
                   key={t}
-                  className="flex items-center gap-1 bg-red-500/20 border border-red-500/40 text-red-300 text-xs px-2 py-1 rounded-full"
+                  className="flex items-center gap-1 bg-red-500/20 border border-red-500/40 text-red-600 dark:text-red-300 text-xs px-2 py-1 rounded-full"
                 >
                   {t}
-                  <button onClick={() => toggle(t)} className="hover:text-white">
+                  <button onClick={() => toggle(t)} className="hover:text-red-800 dark:hover:text-white">
                     ×
                   </button>
                 </span>
@@ -114,35 +114,18 @@ export function EtfTab(): React.JSX.Element {
             </div>
           )}
 
-          <p className="text-xs text-zinc-500">💡 선택한 ETF에 따라 자동 설정됩니다</p>
+          <p className="text-xs text-gray-400 dark:text-zinc-500">💡 선택한 ETF에 따라 자동 설정됩니다</p>
         </div>
 
-        <ButtonGroup
-          label="투자 목적"
-          options={['장기투자', '배당수익', '단기트레이딩']}
-          value={purpose}
-          onChange={setPurpose}
-        />
-
-        <ButtonGroup
-          label="투자 스타일"
-          options={['패시브', '액티브', '테마']}
-          value={style}
-          onChange={setStyle}
-        />
-
-        <ButtonGroup
-          label="투자 지역"
-          options={['미국', '한국', '글로벌']}
-          value={region}
-          onChange={setRegion}
-        />
+        <ButtonGroup label="투자 목적" options={['장기투자', '배당수익', '단기트레이딩']} value={purpose} onChange={setPurpose} />
+        <ButtonGroup label="투자 스타일" options={['패시브', '액티브', '테마']} value={style} onChange={setStyle} />
+        <ButtonGroup label="투자 지역" options={['미국', '한국', '글로벌']} value={region} onChange={setRegion} />
       </div>
 
       <button
         onClick={generate}
         disabled={selected.length === 0}
-        className="w-full bg-red-500 hover:bg-red-600 disabled:bg-zinc-700 disabled:text-zinc-500 text-white py-3 rounded-xl font-semibold text-base transition-colors"
+        className="w-full bg-red-500 hover:bg-red-600 disabled:bg-gray-200 dark:disabled:bg-zinc-700 disabled:text-gray-400 dark:disabled:text-zinc-500 text-white py-3 rounded-xl font-semibold text-base transition-colors"
       >
         ✨ 프롬프트 생성
       </button>

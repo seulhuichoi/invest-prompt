@@ -30,11 +30,11 @@ export function JongmokTab(): React.JSX.Element {
   return (
     <div className="space-y-5">
       <div>
-        <h2 className="text-lg font-bold text-white">💡 종목찾기</h2>
-        <p className="text-sm text-zinc-400">프롬프트로 AI가 종목 발굴</p>
+        <h2 className="text-lg font-bold text-gray-900 dark:text-white">💡 종목찾기</h2>
+        <p className="text-sm text-gray-500 dark:text-zinc-400">프롬프트로 AI가 종목 발굴</p>
       </div>
 
-      <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-4 space-y-5">
+      <div className="bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 rounded-xl p-4 space-y-5">
         <ButtonGroup
           label="🌏 시장"
           options={['KR 한국주식', 'US 미국주식']}
@@ -43,7 +43,7 @@ export function JongmokTab(): React.JSX.Element {
         />
 
         <div className="space-y-2">
-          <p className="text-sm font-medium text-zinc-300">🎯 섹터</p>
+          <p className="text-sm font-medium text-gray-700 dark:text-zinc-300">🎯 섹터</p>
           <div className="flex flex-wrap gap-2">
             {SECTORS.map((s) => (
               <button
@@ -52,7 +52,7 @@ export function JongmokTab(): React.JSX.Element {
                 className={`px-3 py-1.5 rounded-full text-sm border transition-colors ${
                   sector === s
                     ? 'bg-red-500 border-red-500 text-white'
-                    : 'bg-transparent border-zinc-600 text-zinc-300 hover:border-zinc-400 hover:text-white'
+                    : 'bg-transparent border-gray-300 dark:border-zinc-600 text-gray-700 dark:text-zinc-300 hover:border-gray-500 dark:hover:border-zinc-400 hover:text-gray-900 dark:hover:text-white'
                 }`}
               >
                 {s}
