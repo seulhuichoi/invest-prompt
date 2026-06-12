@@ -69,3 +69,59 @@ describe('syncVariableSpecs', () => {
     ])
   })
 })
+
+import { loadUserTemplates, saveUserTemplate, deleteUserTemplate } from './templateStore'
+import type { PromptTemplate } from '../types'
+
+function memStorage(): Pick<Storage, 'getItem' | 'setItem'> {
+  const m = new Map<string, string>()
+  return {
+    getItem: (k: string) => (m.has(k) ? m.get(k)! : null),
+    setItem: (k: string, v: string) => {
+      m.set(k, v)
+    },
+  }
+}
+
+const sample: PromptTemplate = {
+  id: 't1',
+  emoji: '📨',
+  title: '콜드메일',
+  body: '{회사}에 메일',
+  variables: [{ name: '회사', kind: 'free' }],
+  builtin: false,
+}
+
+describe('user template CRUD', () => {
+  it('초기에는 빈 배열', () => {
+    expect(loadUserTemplates(memStorage())).toEqual([])
+  })
+
+  it('add → load 라운드트립', () => {
+    const s = memStorage()
+    saveUserTemplate(sample, s)
+    expect(loadUserTemplates(s)).toEqual([sample])
+  })
+
+  it('같은 id는 갱신(중복 추가 아님)', () => {
+    const s = memStorage()
+    saveUserTemplate(sample, s)
+    saveUserTemplate({ ...sample, title: '수정됨' }, s)
+    const list = loadUserTemplates(s)
+    expect(list).toHaveLength(1)
+    expect(list[0].title).toBe('수정됨')
+  })
+
+  it('delete 후 제거', () => {
+    const s = memStorage()
+    saveUserTemplate(sample, s)
+    deleteUserTemplate('t1', s)
+    expect(loadUserTemplates(s)).toEqual([])
+  })
+
+  it('손상된 JSON이면 빈 배열', () => {
+    const s = memStorage()
+    s.setItem('promptdeck_templates', '{not json')
+    expect(loadUserTemplates(s)).toEqual([])
+  })
+})
