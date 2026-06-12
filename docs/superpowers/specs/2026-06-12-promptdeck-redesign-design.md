@@ -53,6 +53,18 @@
 
 ```ts
 // src/data/templates.ts 및 src/utils/templateStore.ts 공용 타입
+
+export type VariableKind = 'free' | 'combo' | 'select'
+// free   = 완전자율   : 사용자가 직접 입력
+// combo  = 자율+선택형 : 직접 입력하거나 기존 선택지 중에서 고름
+// select = 선택형      : 기존 선택지 중에서만 고름
+
+export interface VariableSpec {
+  name: string          // 본문의 {name} 토큰과 일치
+  kind: VariableKind    // 입력 방식
+  options?: string[]    // combo/select 일 때의 선택지 목록 (≥1)
+}
+
 export interface PromptTemplate {
   id: string            // 안정적 식별자. 히스토리 키로도 사용
   emoji: string         // 탭/목록 아이콘
@@ -60,10 +72,13 @@ export interface PromptTemplate {
   description?: string   // 실행 화면 상단 안내 (선택)
   body: string          // 프롬프트 본문. {변수} 자리표시자 포함 가능
   note?: string         // 사용 안내 배너 (예: 낙서의 "이미지 첨부" 안내)
+  variables?: VariableSpec[]  // 자동 감지된 변수별 종류/선택지. 생략 시 전부 free 취급
   builtin: boolean      // true=기본 제공(수정/삭제 불가), false=사용자 생성
 }
 ```
 
+- 변수는 항상 **본문에서 자동 감지**되고(`parseVariables`), `variables`는 그 위에 얹는 **메타데이터**다. 렌더링할 입력 목록의 기준은 언제나 본문 토큰이며, `variables`는 각 변수의 종류·선택지만 제공한다.
+- 본문에 있으나 `variables`에 없는 변수 → `kind: 'free'`로 취급. `variables`에 있으나 본문에 없는 변수 → 무시. (편집기에서 저장 시 `syncVariableSpecs`로 동기화 — §5)
 - 기본 제공 템플릿은 코드(`data/templates.ts`)에 상수로 둔다(`builtin: true`).
 - 사용자 템플릿은 localStorage(`promptdeck_templates`)에 배열로 저장한다(`builtin: false`).
 
@@ -79,9 +94,26 @@ export interface PromptTemplate {
 - **치환** `applyTemplate(body: string, values: Record<string,string>): string`
   - 본문의 모든 `{변수}` 등장 위치를 해당 값으로 치환한다.
   - `values`에 없는 변수는 원문 `{변수}` 그대로 둔다(방어적).
+- **변수 스펙 동기화** `syncVariableSpecs(body: string, existing: VariableSpec[]): VariableSpec[]`
+  - `parseVariables(body)`로 현재 변수명을 구한 뒤, 본문 등장 순서대로 스펙 배열을 재구성한다.
+  - 이미 `existing`에 있는 이름은 종류·선택지를 **보존**한다.
+  - 새 이름은 기본값 `{ kind: 'free' }`로 추가한다.
+  - 본문에서 사라진 이름은 **제거**한다.
+  - 편집기에서 본문이 바뀔 때마다, 그리고 저장 직전에 호출한다.
+
+### 변수 입력 렌더링 규칙 (종류별)
+
+TemplateRunner는 `parseVariables(body)` 순서대로 각 변수의 입력 컨트롤을 그린다. 해당 변수의 `VariableSpec`(없으면 `free`)에 따라:
+
+| 종류 | 컨트롤 | 비고 |
+|---|---|---|
+| `free` 완전자율 | 텍스트 입력 | 자유 입력 |
+| `combo` 자율+선택형 | 텍스트 입력 + 선택지 칩(클릭 시 입력칸 채움) | 직접 입력 or 선택, 둘 다 가능 |
+| `select` 선택형 | 드롭다운(기존 `SelectDropdown` 재사용) | 선택지 중에서만. 기본값=첫 선택지 |
+
 - **생성 버튼 활성 조건**
   - 변수 0개 템플릿: 항상 활성.
-  - 변수 ≥1개: 모든 변수 입력값이 `trim()` 후 비어있지 않을 때만 활성.
+  - 변수 ≥1개: 모든 변수 값이 `trim()` 후 비어있지 않을 때만 활성. (`select`는 기본값이 첫 선택지이므로 항상 채워진 상태)
 
 localStorage CRUD(같은 파일):
 
@@ -102,8 +134,9 @@ src/
 │  ├─ tabs/ (기존 10개)            [유지]
 │  └─ template/
 │     ├─ TemplateTabs.tsx          [신규] 프롬프트 항목 탭바 + ＋ 버튼
-│     ├─ TemplateRunner.tsx        [신규] 변수 입력→생성, PromptResult 재사용, (사용자 템플릿이면) 수정/삭제
-│     └─ TemplateEditor.tsx        [신규] 새/편집 폼: 이모지·제목·본문·설명 + 감지 변수 미리보기
+│     ├─ TemplateRunner.tsx        [신규] 종류별 변수 입력→생성, PromptResult 재사용, (사용자 템플릿) 수정/삭제
+│     ├─ TemplateEditor.tsx        [신규] 새/편집 폼: 이모지·제목·본문·설명 + 변수별 종류/선택지 지정
+│     └─ VariableInput.tsx         [신규] 종류(free/combo/select)에 맞는 단일 변수 입력 컨트롤
 ├─ utils/
 │  ├─ promptBuilder.ts             [유지] 투자 10종 빌더
 │  └─ templateStore.ts             [신규] parseVariables / applyTemplate / CRUD
@@ -127,6 +160,17 @@ const [userTemplates, setUserTemplates] = useState<PromptTemplate[]>(() => loadU
 - `＋` 클릭 → `promptView = { kind: 'create' }`.
 - 저장 성공 → `userTemplates` 갱신 + 해당 템플릿 실행 화면(`run`)으로 이동.
 - 삭제 성공 → 첫 항목으로 이동.
+
+### 편집기의 변수 설정 UI (TemplateEditor)
+
+본문 textarea 아래에 **자동 감지된 변수 목록**이 본문 등장 순서대로 나열되고, 변수마다 한 행을 차지한다:
+
+- 변수명(읽기 전용, 본문에서 추출).
+- 종류 선택: `완전자율 / 자율+선택형 / 선택형` (ButtonGroup 재사용).
+- `자율+선택형`·`선택형`이면 그 아래 **선택지 편집기**가 펼쳐진다 — 칩 입력(텍스트 + Enter/쉼표로 추가, 칩의 × 로 삭제).
+- 본문이 바뀌면 `syncVariableSpecs`로 행 목록을 갱신(기존 설정 보존).
+
+**저장 유효성**: 제목·본문 비어있지 않음. `자율+선택형`·`선택형` 변수는 선택지 **≥1개** 필요(없으면 저장 차단 + 안내). 위반 시 인라인 메시지.
 
 ## 7. 기본 제공 프롬프트 (전문)
 
@@ -156,7 +200,7 @@ Redraw the attached image in the most clumsy, scribbly, and utterly pathetic way
 리포트는 단순한 개요나 요약이 아니라 … (이하 사용자가 제공한 10개 기준 + 작성 방식 + 출력 형식 전문 그대로)
 ```
 
-> 구현 시 §원문(사용자 메시지)의 심층리포트 프롬프트 전체를 그대로 `body`에 넣는다. `{주제}` 토큰이 변수로 자동 감지된다.
+> 구현 시 §원문(사용자 메시지)의 심층리포트 프롬프트 전체를 그대로 `body`에 넣는다. `{주제}` 토큰이 변수로 자동 감지된다. 두 기본 제공 템플릿 모두 `variables`를 생략하므로 `{주제}`는 `free`(완전자율)로 동작한다.
 
 ## 8. 상태 & 영속화 (localStorage)
 
@@ -183,6 +227,7 @@ Redraw the attached image in the most clumsy, scribbly, and utterly pathetic way
 - 단위 테스트 대상(`src/utils/templateStore.test.ts`):
   - `parseVariables`: 변수 없음 / 1개 / 중복 / 등장순서 / 공백 트림 / 인접 토큰.
   - `applyTemplate`: 정상 치환 / 다중 등장 치환 / 누락 변수 원문 유지.
+  - `syncVariableSpecs`: 새 변수 `free` 기본값 / 기존 종류·선택지 보존 / 삭제된 변수 제거 / 본문 등장 순서 유지.
   - CRUD: 가짜 Storage 주입 후 add → load → update → delete 라운드트립.
 - **UI 검증**: `npm run dev` 후 브라우저(또는 Visual Companion)에서 카테고리 전환, 낙서/심층리포트 생성, 새 템플릿 작성·수정·삭제, 복사·히스토리 동작 확인.
 
@@ -190,16 +235,16 @@ Redraw the attached image in the most clumsy, scribbly, and utterly pathetic way
 
 - 백엔드·계정·동기화 없음 (전부 클라이언트 + localStorage).
 - 템플릿 import/export, 공유 링크 없음.
-- 변수 입력은 **텍스트만**(드롭다운/숫자 등 타입 없음).
+- 변수 종류는 **완전자율 / 자율+선택형 / 선택형** 3종까지. 숫자·날짜·다중선택 등 추가 입력 타입은 범위 밖.
 - 아이콘 이미지 재생성 없음.
 - 투자 10개 탭의 내부 로직 변경 없음(카테고리로 묶기만 함).
 
 ## 12. 구현 순서 (개략 — 구체화는 plan 단계)
 
-1. `templateStore.ts` 순수 함수 + 테스트 (TDD).
+1. `templateStore.ts` 순수 함수(`parseVariables`/`applyTemplate`/`syncVariableSpecs`/CRUD) + 테스트 (TDD).
 2. Vitest 설정(package.json, vite.config.ts).
 3. `data/templates.ts` 기본 제공 템플릿(낙서/심층리포트).
-4. `TemplateRunner` → `TemplateEditor` → `TemplateTabs`.
+4. `VariableInput` → `TemplateRunner` → `TemplateEditor` → `TemplateTabs`.
 5. `CategoryBar` + `App.tsx` 통합(카테고리/항목 상태, 푸터 분기).
 6. 리브랜딩(index.html, manifest, 헤더).
 7. dev 서버로 전체 흐름 검증.
