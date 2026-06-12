@@ -125,3 +125,23 @@ describe('user template CRUD', () => {
     expect(loadUserTemplates(s)).toEqual([])
   })
 })
+
+import { BUILTIN_TEMPLATES } from '../data/templates'
+
+describe('BUILTIN_TEMPLATES', () => {
+  it('낙서는 변수가 없다', () => {
+    const t = BUILTIN_TEMPLATES.find((x) => x.id === 'builtin-nakseo')!
+    expect(parseVariables(t.body)).toEqual([])
+  })
+
+  it('심층리포트는 {주제} 변수를 가진다', () => {
+    const t = BUILTIN_TEMPLATES.find((x) => x.id === 'builtin-simchung')!
+    expect(parseVariables(t.body)).toEqual(['주제'])
+  })
+
+  it('모든 기본 템플릿은 builtin=true, 고유 id', () => {
+    const ids = BUILTIN_TEMPLATES.map((t) => t.id)
+    expect(BUILTIN_TEMPLATES.every((t) => t.builtin)).toBe(true)
+    expect(new Set(ids).size).toBe(ids.length)
+  })
+})
