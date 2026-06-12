@@ -10,3 +10,10 @@ export function parseVariables(body: string): string[] {
   }
   return out
 }
+
+export function applyTemplate(body: string, values: Record<string, string>): string {
+  return body.replace(/\{([^{}\n]+)\}/g, (whole, raw) => {
+    const key = (raw as string).trim()
+    return key in values ? values[key] : whole
+  })
+}
