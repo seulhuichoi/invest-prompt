@@ -1,3 +1,5 @@
+import type { VariableSpec } from '../types'
+
 export function parseVariables(body: string): string[] {
   const seen = new Set<string>()
   const out: string[] = []
@@ -16,4 +18,9 @@ export function applyTemplate(body: string, values: Record<string, string>): str
     const key = (raw as string).trim()
     return key in values ? values[key] : whole
   })
+}
+
+export function syncVariableSpecs(body: string, existing: VariableSpec[]): VariableSpec[] {
+  const byName = new Map(existing.map((s) => [s.name, s]))
+  return parseVariables(body).map((name) => byName.get(name) ?? { name, kind: 'free' })
 }

@@ -42,3 +42,30 @@ describe('applyTemplate', () => {
     expect(applyTemplate('{ 주제 }', { 주제: 'X' })).toBe('X')
   })
 })
+
+import { syncVariableSpecs } from './templateStore'
+import type { VariableSpec } from '../types'
+
+describe('syncVariableSpecs', () => {
+  it('새 변수는 free 기본값', () => {
+    expect(syncVariableSpecs('{주제}', [])).toEqual([{ name: '주제', kind: 'free' }])
+  })
+
+  it('기존 종류·선택지를 보존', () => {
+    const existing: VariableSpec[] = [{ name: '톤', kind: 'select', options: ['담백한'] }]
+    expect(syncVariableSpecs('{톤}', existing)).toEqual([
+      { name: '톤', kind: 'select', options: ['담백한'] },
+    ])
+  })
+
+  it('본문에서 사라진 변수는 제거, 순서는 본문 기준', () => {
+    const existing: VariableSpec[] = [
+      { name: '회사', kind: 'free' },
+      { name: '톤', kind: 'select', options: ['담백한'] },
+    ]
+    expect(syncVariableSpecs('{톤} {신규}', existing)).toEqual([
+      { name: '톤', kind: 'select', options: ['담백한'] },
+      { name: '신규', kind: 'free' },
+    ])
+  })
+})
