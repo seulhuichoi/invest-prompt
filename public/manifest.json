@@ -1,7 +1,7 @@
 {
-  "name": "InvestPrompt",
-  "short_name": "InvestPrompt",
-  "description": "AI 투자 프롬프트 생성기",
+  "name": "PromptDeck",
+  "short_name": "PromptDeck",
+  "description": "AI 프롬프트 생성기",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#ffffff",
