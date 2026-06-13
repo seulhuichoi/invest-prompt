@@ -20,9 +20,36 @@ export function applyTemplate(body: string, values: Record<string, string>): str
   })
 }
 
+export const AUTO_VARIABLE_NAMES = ['날짜', '시간'] as const
+
+export function isAutoVariable(name: string): boolean {
+  return (AUTO_VARIABLE_NAMES as readonly string[]).includes(name)
+}
+
+// 생성 시점의 현재 날짜/시간을 한국(KST) 기준으로 포맷한다.
+// 날짜: "2026년 6월 13일" (앞자리 0 없음), 시간: "KST 12:50" (24시간제, 2자리)
+export function autoVariableValues(now: Date = new Date()): Record<string, string> {
+  const parts = new Intl.DateTimeFormat('en-US', {
+    timeZone: 'Asia/Seoul',
+    year: 'numeric',
+    month: 'numeric',
+    day: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+    hourCycle: 'h23',
+  }).formatToParts(now)
+  const get = (type: string) => parts.find((p) => p.type === type)?.value ?? ''
+  return {
+    날짜: `${get('year')}년 ${Number(get('month'))}월 ${Number(get('day'))}일`,
+    시간: `KST ${get('hour')}:${get('minute')}`,
+  }
+}
+
 export function syncVariableSpecs(body: string, existing: VariableSpec[]): VariableSpec[] {
   const byName = new Map(existing.map((s) => [s.name, s]))
-  return parseVariables(body).map((name) => byName.get(name) ?? { name, kind: 'free' })
+  return parseVariables(body)
+    .filter((name) => !isAutoVariable(name))
+    .map((name) => byName.get(name) ?? { name, kind: 'free' })
 }
 
 const STORAGE_KEY = 'promptdeck_templates'

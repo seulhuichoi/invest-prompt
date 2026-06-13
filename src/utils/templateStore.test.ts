@@ -145,3 +145,39 @@ describe('BUILTIN_TEMPLATES', () => {
     expect(new Set(ids).size).toBe(ids.length)
   })
 })
+
+import { isAutoVariable, autoVariableValues } from './templateStore'
+
+describe('auto variables (날짜/시간)', () => {
+  it('isAutoVariable 식별', () => {
+    expect(isAutoVariable('날짜')).toBe(true)
+    expect(isAutoVariable('시간')).toBe(true)
+    expect(isAutoVariable('회사')).toBe(false)
+  })
+
+  it('KST 기준 날짜/시간 포맷', () => {
+    const d = new Date('2026-06-13T03:50:00Z') // KST 2026-06-13 12:50
+    expect(autoVariableValues(d)).toEqual({ 날짜: '2026년 6월 13일', 시간: 'KST 12:50' })
+  })
+
+  it('앞자리 0 없는 월/일, 2자리 시각', () => {
+    const d = new Date('2026-01-05T23:05:00Z') // KST 2026-01-06 08:05
+    expect(autoVariableValues(d)).toEqual({ 날짜: '2026년 1월 6일', 시간: 'KST 08:05' })
+  })
+
+  it('자정은 00:00 (h23), 날짜 넘어감', () => {
+    const d = new Date('2026-06-13T15:00:00Z') // KST 2026-06-14 00:00
+    expect(autoVariableValues(d)).toEqual({ 날짜: '2026년 6월 14일', 시간: 'KST 00:00' })
+  })
+
+  it('syncVariableSpecs는 자동 변수를 입력 목록에서 제외', () => {
+    expect(syncVariableSpecs('{날짜} {회사} {시간}', [])).toEqual([{ name: '회사', kind: 'free' }])
+  })
+
+  it('applyTemplate은 주입된 자동 값으로 치환', () => {
+    const vals = autoVariableValues(new Date('2026-06-13T03:50:00Z'))
+    expect(applyTemplate('현재 시점은 {날짜} {시간}이야.', vals)).toBe(
+      '현재 시점은 2026년 6월 13일 KST 12:50이야.',
+    )
+  })
+})

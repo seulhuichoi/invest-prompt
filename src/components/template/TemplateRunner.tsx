@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
 import { PromptResult, PromptHistory } from '../ui/PromptResult'
 import { VariableInput } from './VariableInput'
-import { applyTemplate, syncVariableSpecs } from '../../utils/templateStore'
+import { applyTemplate, syncVariableSpecs, autoVariableValues } from '../../utils/templateStore'
 import type { PromptTemplate, VariableSpec } from '../../types'
 
 interface Props {
@@ -31,7 +31,7 @@ export function TemplateRunner({ template, onEdit, onDelete }: Props): React.JSX
   }
 
   function generate() {
-    setPrompt(applyTemplate(template.body, values))
+    setPrompt(applyTemplate(template.body, { ...values, ...autoVariableValues() }))
   }
 
   return (
