@@ -1,3 +1,10 @@
+import { autoVariableValues } from './templateStore'
+
+// 모든 투자 탭 프롬프트 앞에 붙는 머리말. 생성 시점의 KST 날짜가 채워진다.
+function todayPrefix(): string {
+  return `오늘은 ${autoVariableValues().날짜}이다.\n\n`
+}
+
 export function buildJongmokPrompt(
   market: string,
   sector: string,
@@ -7,7 +14,7 @@ export function buildJongmokPrompt(
   count: string,
 ): string {
   const marketLabel = market === 'KR 한국주식' ? '한국(KOSPI/KOSDAQ)' : '미국(NYSE/NASDAQ)'
-  return `${marketLabel} ${sector} 섹터에서 ${style} 전략으로 투자할 종목을 찾아주세요.
+  return `${todayPrefix()}${marketLabel} ${sector} 섹터에서 ${style} 전략으로 투자할 종목을 찾아주세요.
 
 [투자 조건]
 - 시장: ${marketLabel}
@@ -28,7 +35,7 @@ export function buildJongmokPrompt(
 }
 
 export function buildSimdungPrompt(stock: string): string {
-  return `${stock}에 대한 종합적인 심층 분석을 해주세요.
+  return `${todayPrefix()}${stock}에 대한 종합적인 심층 분석을 해주세요.
 
 [분석 항목]
 1. 기업 개요 및 비즈니스 모델
@@ -73,7 +80,7 @@ export function buildJamuPrompt(stock: string, analysisType: string, focus: stri
     심층분석: '세부 항목별 심층 재무 분석',
   }
 
-  return `${stock}의 재무제표를 ${typeMap[analysisType] ?? analysisType}으로 분석해주세요.
+  return `${todayPrefix()}${stock}의 재무제표를 ${typeMap[analysisType] ?? analysisType}으로 분석해주세요.
 ${focusMap[focus] ? `\n특히 ${focusMap[focus]} 진행해주세요.` : ''}
 
 [분석 항목]
@@ -106,7 +113,7 @@ export function buildGachiPrompt(stock: string, method: string, margin: string):
     종합: '상대가치(PER/PBR)와 절대가치(DCF) 두 방법론 모두 적용 후 종합',
   }
 
-  return `${stock}의 적정 주가를 산출해주세요.
+  return `${todayPrefix()}${stock}의 적정 주가를 산출해주세요.
 
 [평가 방법]: ${methodDesc[method] ?? method}
 [안전마진]: ${margin} (내재가치 대비 ${margin} 할인된 가격을 매수 기준으로 설정)
@@ -132,7 +139,7 @@ export function buildChartPrompt(
   indicator: string,
   pattern: string,
 ): string {
-  return `${stock}의 기술적 분석을 진행해주세요.
+  return `${todayPrefix()}${stock}의 기술적 분석을 진행해주세요.
 
 [분석 조건]
 - 타임프레임: ${timeframe}
@@ -175,7 +182,7 @@ export function buildJungseongPrompt(stock: string, focus: string): string {
     ESG: 'ESG(환경·사회·지배구조) 요소 및 지속가능성 평가',
   }
 
-  return `${stock}의 정성적 분석을 해주세요.
+  return `${todayPrefix()}${stock}의 정성적 분석을 해주세요.
 
 [중점 분석 영역]: ${focusDesc[focus] ?? focus}
 
@@ -207,7 +214,7 @@ export function buildJungseongPrompt(stock: string, focus: string): string {
 }
 
 export function buildWihomPrompt(stock: string, scenarios: string, stopLoss: string): string {
-  return `${stock}의 투자 리스크를 분석하고 리스크 관리 전략을 제시해주세요.
+  return `${todayPrefix()}${stock}의 투자 리스크를 분석하고 리스크 관리 전략을 제시해주세요.
 
 [시나리오 수]: ${scenarios}
 [손절 기준]: ${stopLoss}
@@ -250,7 +257,7 @@ export function buildPortfolioPrompt(
     집중투자: '가장 확신도 높은 1~3개 종목에 집중 배분',
   }
 
-  return `아래 종목들로 ${amount} 규모의 포트폴리오를 구성해주세요.
+  return `${todayPrefix()}아래 종목들로 ${amount} 규모의 포트폴리오를 구성해주세요.
 
 [보유 예정 종목]: ${stocks}
 [투자 금액]: ${amount}
@@ -289,7 +296,7 @@ export function buildEtfPrompt(
   style: string,
   region: string,
 ): string {
-  return `선택한 ETF를 분석하고 포트폴리오 구성을 제안해주세요.
+  return `${todayPrefix()}선택한 ETF를 분석하고 포트폴리오 구성을 제안해주세요.
 
 [선택 ETF]: ${etfs}
 [투자 목적]: ${purpose}
