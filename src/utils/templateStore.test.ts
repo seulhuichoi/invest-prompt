@@ -145,6 +145,12 @@ describe('BUILTIN_TEMPLATES', () => {
     expect(parseVariables(t.body)).toEqual(['질문'])
   })
 
+  it('산업 전문가 템플릿은 {산업},{질문} 변수를 가진다', () => {
+    const t = BUILTIN_TEMPLATES.find((x) => x.id === 'builtin-industry-expert')!
+    expect(t.title).toBe('산업 전문가')
+    expect(parseVariables(t.body)).toEqual(['산업', '질문'])
+  })
+
   it('모든 기본 템플릿은 builtin=true, 고유 id', () => {
     const ids = BUILTIN_TEMPLATES.map((t) => t.id)
     expect(BUILTIN_TEMPLATES.every((t) => t.builtin)).toBe(true)
