@@ -4,7 +4,8 @@ export function parseVariables(body: string): string[] {
   const seen = new Set<string>()
   const out: string[] = []
   for (const m of body.matchAll(/\{([^{}\n]+)\}/g)) {
-    const name = m[1].trim()
+    // 조건부 마크 토큰 {변수?값}은 '?' 앞의 베이스 변수명만 입력 변수로 취급
+    const name = m[1].split('?')[0].trim()
     if (name && !seen.has(name)) {
       seen.add(name)
       out.push(name)
@@ -15,8 +16,16 @@ export function parseVariables(body: string): string[] {
 
 export function applyTemplate(body: string, values: Record<string, string>): string {
   return body.replace(/\{([^{}\n]+)\}/g, (whole, raw) => {
-    const key = (raw as string).trim()
-    return key in values ? values[key] : whole
+    const inner = (raw as string).trim()
+    const q = inner.indexOf('?')
+    if (q >= 0) {
+      // 조건부 마크 토큰: {변수?값} → 변수 값이 값과 일치하면 'O', 아니면 ' '
+      const name = inner.slice(0, q).trim()
+      const expected = inner.slice(q + 1).trim()
+      if (!(name in values)) return whole
+      return values[name] === expected ? 'O' : ' '
+    }
+    return inner in values ? values[inner] : whole
   })
 }
 

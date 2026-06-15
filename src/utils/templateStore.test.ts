@@ -145,10 +145,14 @@ describe('BUILTIN_TEMPLATES', () => {
     expect(parseVariables(t.body)).toEqual(['질문'])
   })
 
-  it('산업 전문가 템플릿은 {산업},{질문} 변수를 가진다', () => {
+  it('산업 전문가 템플릿은 산업/렌즈/질문 변수를 가지고, 렌즈는 select', () => {
     const t = BUILTIN_TEMPLATES.find((x) => x.id === 'builtin-industry-expert')!
     expect(t.title).toBe('산업 전문가')
-    expect(parseVariables(t.body)).toEqual(['산업', '질문'])
+    expect(parseVariables(t.body)).toEqual(['산업', '렌즈', '질문'])
+    const lens = t.variables?.find((v) => v.name === '렌즈')
+    expect(lens?.kind).toBe('select')
+    expect(lens?.options?.[0]).toBe('통합')
+    expect(lens?.options).toContain('기술예측 중심')
   })
 
   it('모든 기본 템플릿은 builtin=true, 고유 id', () => {
@@ -191,5 +195,22 @@ describe('auto variables (날짜/시간)', () => {
     expect(applyTemplate('현재 시점은 {날짜} {시간}이야.', vals)).toBe(
       '현재 시점은 2026년 6월 13일 KST 12:50이야.',
     )
+  })
+})
+
+describe('조건부 마크 토큰 {변수?값}', () => {
+  it('parseVariables는 조건 토큰의 베이스 변수만 추출(중복 제거)', () => {
+    expect(parseVariables('[{렌즈?A}] A  [{렌즈?B}] B')).toEqual(['렌즈'])
+    expect(parseVariables('{산업} [{렌즈?기술예측 중심}] {질문}')).toEqual(['산업', '렌즈', '질문'])
+  })
+
+  it('applyTemplate은 일치 시 O, 불일치 시 공백', () => {
+    const body = '[{렌즈?기술예측 중심}] 기술  [{렌즈?시장/산업 중심}] 시장'
+    expect(applyTemplate(body, { 렌즈: '기술예측 중심' })).toBe('[O] 기술  [ ] 시장')
+    expect(applyTemplate(body, { 렌즈: '통합' })).toBe('[ ] 기술  [ ] 시장')
+  })
+
+  it('값이 주어지지 않은 조건 토큰은 원문 유지', () => {
+    expect(applyTemplate('[{렌즈?A}]', {})).toBe('[{렌즈?A}]')
   })
 })
