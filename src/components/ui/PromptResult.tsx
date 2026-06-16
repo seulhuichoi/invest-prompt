@@ -10,14 +10,6 @@ interface Props {
   historyKey: string
 }
 
-const AI_TOOLS = [
-  { name: 'ChatGPT', url: 'https://chat.openai.com', emoji: '🤖' },
-  { name: 'Claude', url: 'https://claude.ai', emoji: '🧠' },
-  { name: 'Gemini', url: 'https://gemini.google.com', emoji: '✨' },
-  { name: 'Perplexity', url: 'https://www.perplexity.ai', emoji: '🔍' },
-  { name: 'AI Studio', url: 'https://aistudio.google.com', emoji: '🎨' },
-]
-
 export function PromptResult({ prompt, historyKey }: Props): React.JSX.Element {
   const [copied, setCopied] = useState(false)
 
@@ -51,24 +43,6 @@ export function PromptResult({ prompt, historyKey }: Props): React.JSX.Element {
         <pre className="text-sm text-gray-800 dark:text-zinc-200 whitespace-pre-wrap leading-relaxed font-sans">
           {prompt}
         </pre>
-      </div>
-
-      <div className="space-y-1.5">
-        <p className="text-xs text-gray-400 dark:text-zinc-500">AI 도구에서 바로 사용하기</p>
-        <div className="flex flex-wrap gap-2">
-          {AI_TOOLS.map((tool) => (
-            <a
-              key={tool.name}
-              href={tool.url}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center gap-1.5 px-3 py-1.5 bg-white dark:bg-zinc-800 hover:bg-gray-50 dark:hover:bg-zinc-700 border border-gray-200 dark:border-zinc-600 hover:border-gray-300 dark:hover:border-zinc-500 rounded-full text-sm text-gray-700 dark:text-zinc-300 transition-colors"
-            >
-              <span>{tool.emoji}</span>
-              <span>{tool.name}</span>
-            </a>
-          ))}
-        </div>
       </div>
     </div>
   )
